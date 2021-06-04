@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'albumsPanel.dart';
+import 'package:app/logic/spotifyBloc.dart';
+import 'package:app/logic/spotifyEvents.dart';
+import 'package:spotify_sdk/models/player_state.dart';
 
 class MusicController extends StatefulWidget {
+  
   final double width;
   final double height;
+  final SpotifyController spotifyController;
+
   const MusicController({
     required this.width,
     required this.height,
+    required this.spotifyController,
     Key? key,
   }) : super(key: key);
 
@@ -16,40 +23,42 @@ class MusicController extends StatefulWidget {
 
 class _MusicControllerState extends State<MusicController> {
 
-  bool isLiked = false;
-  bool isPlaying = false;
+  bool isPaused = false;
 
-  // This function will like/dislike the current track
-  void like() {
-    if (isLiked) {
-      setState(() {
-        isLiked = false;
-      });
-    } else {
-      setState(() {
-        isLiked = true;
-      });
-    }
+  // This function will shuffle the tracks
+  void toggleShuffle() {
+    ToggleShuffle event = ToggleShuffle();
+    widget.spotifyController.add(event);
   }
 
   // This function will play the previous track
-  void previousTrack() {}
+  void previousTrack() {
+    SkipPrevious event = SkipPrevious();
+    widget.spotifyController.add(event);
+  }
 
   // This function will play/pause the current track
   void playPause() {
-    if (isPlaying) {
+    if (isPaused) {
+      SpotifyEvents event = Resume();
+      widget.spotifyController.add(event);
       setState(() {
-        isPlaying = false;
+        isPaused = false;
       });
     } else {
+      SpotifyEvents event = Pause();
+      widget.spotifyController.add(event);
       setState(() {
-        isPlaying = true;
+        isPaused = true;
       });
     }
   }
 
   // This function will play the next track
-  void nextTrack() {}
+  void nextTrack() {
+    SkipNext event = SkipNext();
+    widget.spotifyController.add(event);
+  }
 
   // This function will show a list of recommended albums
   void showAlbums(BuildContext context, double width, double height) {
@@ -62,7 +71,8 @@ class _MusicControllerState extends State<MusicController> {
           children: [
             AlbumsPanel(
               width: width,
-              height: height
+              height: height,
+              spotifyController: widget.spotifyController,
             ),
           ],
         );
@@ -75,50 +85,59 @@ class _MusicControllerState extends State<MusicController> {
     return Container(
       padding: EdgeInsets.only(top: 12.0, bottom: 12.0),
       width: widget.width * 0.9,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          GestureDetector(
-            child: Icon(
-              isLiked ? Icons.favorite : Icons.favorite_outline_rounded,
-              color: Colors.green[600],
-              size: widget.width * 0.07,
-            ),
-            onTap: () => like(),
-          ),
-          GestureDetector(
-            child: Icon(
-              Icons.skip_previous_rounded,
-              color: Colors.green[600],
-              size: widget.width * 0.07,
-            ),
-            onTap: () => previousTrack(),
-          ),
-          GestureDetector(
-            child: Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow_rounded,
-              color: Colors.green[600],
-              size: widget.width * 0.07,
-            ),
-            onTap: () => playPause(),
-          ),
-          GestureDetector(
-            child: Icon(
-              Icons.skip_next_rounded,
-              color: Colors.green[600],
-              size: widget.width * 0.07,
-            ),
-            onTap: () => nextTrack(),
-          ),
-          GestureDetector(
-            child: Icon(
-              Icons.library_music_rounded,
-              color: Colors.green[600],
-              size: widget.width * 0.07,
-            ),
-            onTap: () => showAlbums(context, widget.width, widget.height),
-          ),
-        ],
+      child: StreamBuilder(
+        stream: widget.spotifyController.playerState,
+        builder: (context, AsyncSnapshot<PlayerState> snapshot) {
+          if (snapshot.data != null) {
+            PlayerState playerState = snapshot.data!;
+            isPaused = playerState.isPaused;
+          }
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              GestureDetector(
+                child: Icon(
+                  Icons.shuffle_rounded,
+                  color: Colors.green[600],
+                  size: widget.width * 0.1,
+                ),
+                onTap: () => toggleShuffle(),
+              ),
+              GestureDetector(
+                child: Icon(
+                  Icons.skip_previous_rounded,
+                  color: Colors.green[600],
+                  size: widget.width * 0.1,
+                ),
+                onTap: () => previousTrack(),
+              ),
+              GestureDetector(
+                child: Icon(
+                  isPaused ? Icons.play_arrow_rounded : Icons.pause,
+                  color: Colors.green[600],
+                  size: widget.width * 0.1,
+                ),
+                onTap: () => playPause(),
+              ),
+              GestureDetector(
+                child: Icon(
+                  Icons.skip_next_rounded,
+                  color: Colors.green[600],
+                  size: widget.width * 0.1,
+                ),
+                onTap: () => nextTrack(),
+              ),
+              GestureDetector(
+                child: Icon(
+                  Icons.library_music_rounded,
+                  color: Colors.green[600],
+                  size: widget.width * 0.1,
+                ),
+                onTap: () => showAlbums(context, widget.width, widget.height),
+              ),
+            ],
+          );
+        }
       ),
       decoration: BoxDecoration(
         color: Colors.black,
