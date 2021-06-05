@@ -1,9 +1,10 @@
-import 'package:app/widgets/trackPanel.dart';
 import 'package:flutter/material.dart';
 import 'package:app/logic/spotifyBloc.dart';
 import 'package:app/logic/spotifyEvents.dart';
-import 'package:app/widgets/connecting.dart';
-import 'package:app/widgets/musicController.dart';
+import 'package:app/gameWidgets/gameWidget.dart';
+import 'package:app/musicWidgets/connecting.dart';
+import 'package:app/musicWidgets/trackPanel.dart';
+import 'package:app/musicWidgets/musicController.dart';
 import 'package:spotify_sdk/models/connection_status.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late SpotifyController spotifyController;
   bool connected = false;
-
+  
   void initState() {
     spotifyController = SpotifyController();
     super.initState();
@@ -51,27 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: height,
                     spotifyController: spotifyController,
                   ) : Connecting(width: width, height: height),
-                  GestureDetector(
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: EdgeInsets.only(top: 7.0, bottom: 7.0),
-                      width: width * 0.4,
-                      child: Text(
-                        "Play",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: width * 0.07,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green[600],
-                        borderRadius: BorderRadius.circular(100.0),
-                      ),
-                    ),
-                    onTap: () {
-                      print("PlayScreen");
-                    },
+                  // This widget will handle the game
+                  Container(
+                    width: width * 0.9,
+                    height: width * 0.9,
+                    child: GameWidget(width: width, height: height)
                   ),
                   // If connected display music controller else display connecting
                   connected ? MusicController(
