@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:app/logic/gameBloc.dart';
+import 'package:app/logic/gameEvents.dart';
 
 class GameGrid extends StatefulWidget {
 
@@ -17,7 +19,16 @@ class GameGrid extends StatefulWidget {
 
 class _GameGridState extends State<GameGrid> {
 
-  List gameState = [" ", " ", " ", " ", " ", " ", " ", " ", " "];
+  late GameController gameController;
+  String gameState = "Playing";
+  List gridState = [" ", " ", " ", " ", " ", " ", " ", " ", " "];
+
+  void initState() {
+    gameController = GameController();
+    super.initState();
+    NewGameEvent event = NewGameEvent();
+    gameController.add(event);
+  }
 
   // This function will return X and O based on the rawText
   String gridText(String rawText) {
@@ -37,7 +48,7 @@ class _GameGridState extends State<GameGrid> {
       child: Container(
         alignment: Alignment.center,
         child: Text(
-          gridText(gameState[index]),
+          gridText(gridState[index]),
           style: TextStyle(
             color: Colors.green[600],
             fontSize: widget.width * 0.2,
@@ -49,10 +60,11 @@ class _GameGridState extends State<GameGrid> {
         ),
       ),
       onTap: () {
-        if (gameState[index] == " ") {
-          setState(() {
-            gameState[index] = "x";
-          });
+        if (gridState[index] == " ") {
+          PlayerInputEvent event = PlayerInputEvent(
+            index: index
+          );
+          gameController.add(event);
         }
       },
     );
@@ -60,17 +72,67 @@ class _GameGridState extends State<GameGrid> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: widget.width * 0.9,
-      height: widget.width * 0.9,
-      child: GridView.builder(
-        itemCount: 9,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-        itemBuilder: (context, index) {
-          return gridItem(index);
+    return StreamBuilder(
+      stream: gameController.stream,
+      builder: (context, AsyncSnapshot<Map> snapshot) {
+        print(snapshot.data);
+        if (snapshot.data != null) {
+          Map data = snapshot.data!;
+          gridState = data["gridState"];
+          gameState = data["gameState"];
         }
-      ),
+        if (gameState == "Playing") {
+          return Container(
+            width: widget.width * 0.9,
+            height: widget.width * 0.9,
+            child: GridView.builder(
+              itemCount: 9,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+              itemBuilder: (context, index) {
+                return gridItem(index);
+              }
+            ),
+          );
+        } else {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text(
+                "$gameState",
+                style: TextStyle(
+                  color: Colors.green[600],
+                  fontSize: widget.width * 0.1,
+                  fontWeight: FontWeight.bold
+                ),
+              ),
+              GestureDetector(
+                child: Container(
+                  width: widget.width * 0.6,
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.only(top: 7.0, bottom: 7.0),
+                  child: Text(
+                    "Play again",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: widget.width * 0.07,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green[600],
+                    borderRadius: BorderRadius.circular(100.0),
+                  ),
+                ),
+                onTap: () {
+                  NewGameEvent event = NewGameEvent();
+                  gameController.add(event);
+                },
+              ),
+            ],
+          );
+        }
+      }
     );
   }
 }
