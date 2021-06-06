@@ -30,17 +30,6 @@ class _GameGridState extends State<GameGrid> {
     gameController.add(event);
   }
 
-  // This function will return X and O based on the rawText
-  String gridText(String rawText) {
-    if (rawText == "x") {
-      return "╳";
-    } else if (rawText == "o"){
-      return  "O";
-    } else {
-      return " ";
-    }
-  }
-
   // This function will display a grid item and
   // Will validate and pass input into the bloc
   Widget gridItem(index) {
@@ -48,7 +37,7 @@ class _GameGridState extends State<GameGrid> {
       child: Container(
         alignment: Alignment.center,
         child: Text(
-          gridText(gridState[index]),
+          "${gridState[index].toString().toUpperCase()}",
           style: TextStyle(
             color: Colors.green[600],
             fontSize: widget.width * 0.2,
@@ -75,7 +64,6 @@ class _GameGridState extends State<GameGrid> {
     return StreamBuilder(
       stream: gameController.stream,
       builder: (context, AsyncSnapshot<Map> snapshot) {
-        print(snapshot.data);
         if (snapshot.data != null) {
           Map data = snapshot.data!;
           gridState = data["gridState"];

@@ -8,6 +8,7 @@ void main() {
     [DeviceOrientation.portraitUp]
   );
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: HomeScreen(),
   ));
 }
