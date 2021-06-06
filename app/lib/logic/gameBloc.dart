@@ -66,9 +66,9 @@ bool _checkWin(List gridState) {
 }
 
 // This function will check if the game is a tie
-bool _checkTie(List gameState) {
+bool _checkTie(List gridState) {
   bool result = true;
-  if (gameState.contains(" ")) {
+  if (gridState.contains(" ")) {
     result = false;
   }
   return result;
